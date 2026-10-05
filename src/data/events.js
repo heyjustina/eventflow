@@ -1,0 +1,48 @@
+// Mock data: a plain array, NOT a real database.
+// Each event is an object with the same set of keys.
+export const events = [
+  {
+    id: 1,
+    name: 'Networking Mixer',
+    type: 'Workshop',
+    date: '2026-11-14',
+    location: 'Dallas, TX',
+    guests: 40,
+    budget: 6000,
+    status: 'On Track',
+    progress: 78,
+  },
+  {
+    id: 2,
+    name: 'Autumn Tea Pop-Up Market',
+    type: 'Pop-up',
+    date: '2026-10-25',
+    location: 'Austin, TX',
+    guests: 150,
+    budget: 15000,
+    status: 'At Risk',
+    progress: 35,
+  },
+  {
+    id: 3,
+    name: 'Sunrise Yoga & Tea Retreat',
+    type: 'Retreat',
+    date: '2027-02-06',
+    location: 'Sedona, AZ',
+    guests: 25,
+    budget: 22000,
+    status: 'Planning',
+    progress: 12,
+  },
+  {
+    id: 4,
+    name: 'Wellness Brand Launch Night',
+    type: 'Launch',
+    date: '2026-12-03',
+    location: 'Houston, TX',
+    guests: 120,
+    budget: 18000,
+    status: 'On Track',
+    progress: 64,
+  },
+];

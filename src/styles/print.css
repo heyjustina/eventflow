@@ -1,0 +1,61 @@
+.print-sheet {
+  max-width: 800px;
+  padding: var(--space-5);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.print-actions {
+  margin-bottom: var(--space-4);
+}
+
+.print-sheet h3 {
+  margin-top: var(--space-5);
+  padding-bottom: var(--space-1);
+  border-bottom: 2px solid var(--color-text);
+}
+
+.print-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.print-table th,
+.print-table td {
+  padding: var(--space-1) var(--space-2);
+  text-align: left;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.col-check {
+  width: 28px;
+}
+
+.print-block {
+  break-inside: avoid;
+}
+
+/* When printing, hide the app chrome and show only the plan */
+@media print {
+  .header,
+  .sidebar,
+  .footer,
+  .tabs,
+  .back-link,
+  .page-header,
+  .no-print {
+    display: none !important;
+  }
+
+  .app-main {
+    padding: 0;
+  }
+
+  .print-sheet {
+    max-width: none;
+    padding: 0;
+    border: none;
+  }
+}

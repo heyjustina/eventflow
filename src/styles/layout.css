@@ -1,0 +1,133 @@
+/* ==========================================================
+   Layout: header, sidebar, main area, footer
+   ========================================================== */
+
+   
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- Header ---------- */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  height: 64px;
+  padding: 0 var(--space-5);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.header-logo {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.header-logo span {
+  color: var(--color-primary);
+}
+
+.header-cta {
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-primary);
+  color: #fff;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.header-cta:hover {
+  background: var(--color-primary-dark);
+}
+
+/* ---------- Body: sidebar + main ---------- */
+.app-body {
+  flex: 1;
+  display: flex;
+}
+
+.sidebar {
+  width: 220px;
+  padding: var(--space-5) var(--space-4);
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-border);
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.sidebar-link {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.sidebar-link:hover {
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.sidebar-link.active {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.app-main {
+  flex: 1;
+  min-width: 0; /* stops wide content from pushing the layout sideways */
+  padding: var(--space-6) var(--space-5);
+}
+
+/* ---------- Footer ---------- */
+.footer {
+  padding: var(--space-4) var(--space-5);
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.footer p {
+  margin: 0;
+}
+
+/* ---------- Small screens (basic version; we polish in Step 12) ---------- */
+@media (max-width: 768px) {
+  .app-body {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    padding: var(--space-2) var(--space-3);
+    border-right: none;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .sidebar-nav {
+    flex-direction: row;
+    overflow-x: auto;
+  }
+
+  .sidebar-link {
+    white-space: nowrap;
+  }
+
+  .app-main {
+    padding: var(--space-5) var(--space-4);
+  }
+}
