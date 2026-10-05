@@ -1,7 +1,7 @@
 function Footer() {
   return (
     <footer className="footer">
-      <p>© {new Date().getFullYear()} EventFlow. Turn concepts into executable plans.</p>
+      <p>© {new Date().getFullYear()} EventFlow. From idea to experience.</p>
     </footer>
   );
 }
