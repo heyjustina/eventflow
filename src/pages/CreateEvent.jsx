@@ -80,7 +80,7 @@ function CreateEvent() {
       <div className="page-header">
         <div>
           <h1>Create Event</h1>
-          <p>Enter your concept. We'll turn it into a plan in a later step.</p>
+          <p>Enter your concept and EventFlow will generate your task list, budget split, and due dates.</p>
         </div>
       </div>
 
