@@ -8,6 +8,8 @@ import EventTasks from './pages/EventTasks';
 import EventBudget from './pages/EventBudget';
 import EventRunOfShow from './pages/EventRunOfShow';
 import EventPrint from './pages/EventPrint';
+import Services from './pages/Services';
+import ServiceDetail from './pages/ServiceDetail';
 import NotFound from './pages/NotFound';
 
 function App() {
@@ -15,6 +17,8 @@ function App() {
     <Routes>
       <Route element={<AppLayout />}>
         <Route path="/" element={<Dashboard />} />
+        <Route path="/services" element={<Services />} />
+        <Route path="/services/:id" element={<ServiceDetail />} />
         <Route path="/events/new" element={<CreateEvent />} />
 
         <Route path="/events/:id" element={<EventLayout />}>

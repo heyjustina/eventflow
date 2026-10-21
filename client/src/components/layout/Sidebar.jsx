@@ -1,6 +1,5 @@
 import { NavLink } from 'react-router-dom';
 
-// A small helper: NavLink gives us `isActive`, and we use it to pick the CSS class.
 function getLinkClass({ isActive }) {
   return isActive ? 'sidebar-link active' : 'sidebar-link';
 }
@@ -9,8 +8,11 @@ function Sidebar() {
   return (
     <aside className="sidebar">
       <nav className="sidebar-nav">
+        <NavLink to="/services" className={getLinkClass}>
+          Services
+        </NavLink>
         <NavLink to="/" end className={getLinkClass}>
-          Dashboard
+          Planner (local)
         </NavLink>
         <NavLink to="/events/new" className={getLinkClass}>
           New Event
