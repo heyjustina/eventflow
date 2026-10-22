@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import mongoose from 'mongoose';
 import serviceRoutes from './routes/serviceRoutes.js';
+import authRoutes from './routes/authRoutes.js';
 
 const app = express();
 
@@ -18,6 +19,7 @@ app.get('/api/health', (req, res) => {
 });
 
 app.use('/api/services', serviceRoutes);
+app.use('/api/auth', authRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' });

@@ -1,0 +1,21 @@
+.service-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+
+.service-filters .input {
+  width: auto;
+  min-width: 180px;
+}
+
+.service-provider {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.service-duration {
+  margin: 0;
+  font-size: 0.9rem;
+}

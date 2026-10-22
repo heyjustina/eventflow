@@ -11,6 +11,9 @@ import EventPrint from './pages/EventPrint';
 import Services from './pages/Services';
 import ServiceDetail from './pages/ServiceDetail';
 import NotFound from './pages/NotFound';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import ProtectedRoute from './components/auth/ProtectedRoute';
 
 function App() {
   return (
@@ -19,15 +22,18 @@ function App() {
         <Route path="/" element={<Dashboard />} />
         <Route path="/services" element={<Services />} />
         <Route path="/services/:id" element={<ServiceDetail />} />
-        <Route path="/events/new" element={<CreateEvent />} />
-
-        <Route path="/events/:id" element={<EventLayout />}>
-          <Route index element={<EventOverview />} />
-          <Route path="tasks" element={<EventTasks />} />
-          <Route path="budget" element={<EventBudget />} />
-          <Route path="run-of-show" element={<EventRunOfShow />} />
-          <Route path="print" element={<EventPrint />} />
-        </Route>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} /> 
+<Route element={<ProtectedRoute />}>
+  <Route path="/events/new" element={<CreateEvent />} />
+  <Route path="/events/:id" element={<EventLayout />}>
+    <Route index element={<EventOverview />} />
+    <Route path="tasks" element={<EventTasks />} />
+    <Route path="budget" element={<EventBudget />} />
+    <Route path="run-of-show" element={<EventRunOfShow />} />
+    <Route path="print" element={<EventPrint />} />
+  </Route>
+</Route>
 
         <Route path="*" element={<NotFound />} />
       </Route>
