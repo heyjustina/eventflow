@@ -14,6 +14,7 @@ import NotFound from './pages/NotFound';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ProtectedRoute from './components/auth/ProtectedRoute';
+import MyBookings from './pages/MyBookings';
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} /> 
 <Route element={<ProtectedRoute />}>
+  <Route path="/dashboard" element={<MyBookings />} />
   <Route path="/events/new" element={<CreateEvent />} />
   <Route path="/events/:id" element={<EventLayout />}>
     <Route index element={<EventOverview />} />
