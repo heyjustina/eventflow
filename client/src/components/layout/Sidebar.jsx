@@ -1,22 +1,19 @@
 import { NavLink } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 function getLinkClass({ isActive }) {
   return isActive ? 'sidebar-link active' : 'sidebar-link';
 }
 
 function Sidebar() {
+  const { user } = useAuth();
+
   return (
     <aside className="sidebar">
       <nav className="sidebar-nav">
-        <NavLink to="/services" className={getLinkClass}>
-          Services
-        </NavLink>
-        <NavLink to="/" end className={getLinkClass}>
-          Planner (local)
-        </NavLink>
-        <NavLink to="/events/new" className={getLinkClass}>
-          New Event
-        </NavLink>
+        <NavLink to="/services" className={getLinkClass}>Services</NavLink>
+        {user && <NavLink to="/planner" className={getLinkClass}>AI Planner</NavLink>}
+        {user && <NavLink to="/dashboard" className={getLinkClass}>My Bookings</NavLink>}
       </nav>
     </aside>
   );

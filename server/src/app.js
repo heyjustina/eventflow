@@ -5,6 +5,7 @@ import mongoose from 'mongoose';
 import serviceRoutes from './routes/serviceRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import bookingRoutes from './routes/bookingRoutes.js';
+import aiRoutes from './routes/aiRoutes.js';
 
 const app = express();
 
@@ -27,6 +28,7 @@ app.get('/api/health', (req, res) => {
 app.use('/api/services', serviceRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/bookings', bookingRoutes);
+app.use('/api/ai', aiRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' });
