@@ -220,4 +220,4 @@ Illustrated banners are original SVG drawings made for this project. Service dat
 
 ## Author
 
-YOUR NAME. Built as a capstone project.
+Justina Williams. Built as a capstone project.
