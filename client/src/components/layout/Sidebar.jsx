@@ -11,6 +11,7 @@ function Sidebar() {
   return (
     <aside className="sidebar">
       <nav className="sidebar-nav">
+        <NavLink to="/" end className={getLinkClass}>Home</NavLink>
         <NavLink to="/services" className={getLinkClass}>Services</NavLink>
         {user && <NavLink to="/planner" className={getLinkClass}>AI Planner</NavLink>}
         {user && <NavLink to="/dashboard" className={getLinkClass}>My Bookings</NavLink>}

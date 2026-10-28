@@ -1,7 +1,7 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import AppLayout from './components/layout/AppLayout';
 import ProtectedRoute from './components/auth/ProtectedRoute';
-import Dashboard from './pages/Dashboard';
+import Home from './pages/Home';
 import CreateEvent from './pages/CreateEvent';
 import EventLayout from './pages/EventLayout';
 import EventOverview from './pages/EventOverview';
@@ -21,7 +21,7 @@ function App() {
   return (
     <Routes>
       <Route element={<AppLayout />}>
-        <Route path="/" element={<Navigate to="/services" replace />} />
+        <Route path="/" element={<Home />} />
         <Route path="/services" element={<Services />} />
         <Route path="/services/:id" element={<ServiceDetail />} />
         <Route path="/login" element={<Login />} />
