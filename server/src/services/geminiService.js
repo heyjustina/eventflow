@@ -31,11 +31,54 @@ const RESPONSE_SCHEMA = {
   required: ['summary', 'recommendations', 'diyItems', 'checklist'],
 };
 
-// Sends the event details and catalog to Gemini. Throws a generic error on any problem.
+// Calls one model. Returns the parsed response, or null if it failed.
+async function callModel(model, apiKey, body) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 15000);
+  try {
+    const response = await fetch(`${ENDPOINT}/${model}:generateContent`, {
+      method: 'POST',
+      signal: controller.signal,
+      headers: { 'x-goog-api-key': apiKey, 'Content-Type': 'application/json' },
+      body,
+    });
+    if (!response.ok) {
+      // Log only the model name and status. Never log keys, prompts, or provider messages.
+      console.error(`Gemini model ${model} failed with status`, response.status);
+      return null;
+    }
+    return await response.json().catch(() => null);
+  } catch {
+    console.error(`Gemini model ${model} unreachable or timed out`);
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function parseResult(data) {
+  const text = (data?.candidates?.[0]?.content?.parts || [])
+    .map((part) => part.text || '')
+    .join('')
+    .replace(/```json|```/g, '')
+    .trim();
+  try {
+    const result = JSON.parse(text);
+    return result && Array.isArray(result.recommendations) ? result : null;
+  } catch {
+    return null;
+  }
+}
+
+// AI_MODEL can hold several model names separated by commas. They are tried in order.
 export async function askGemini({ eventType, guests, budget, preferences, services }) {
   const apiKey = process.env.AI_API_KEY;
-  const model = process.env.AI_MODEL;
-  if (!apiKey || !model) {
+  const models = (process.env.AI_MODEL || '')
+    .split(',')
+    .map((m) => m.trim())
+    .filter(Boolean)
+    .slice(0, 3);
+  if (!apiKey || models.length === 0) {
     throw new Error('AI_NOT_CONFIGURED');
   }
 
@@ -51,61 +94,32 @@ export async function askGemini({ eventType, guests, budget, preferences, servic
 
   const customerRequest = JSON.stringify({ eventType, guests, budget, preferences });
 
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 20000);
-
-  let response;
-  try {
-    response = await fetch(`${ENDPOINT}/${model}:generateContent`, {
-      method: 'POST',
-      signal: controller.signal,
-      headers: { 'x-goog-api-key': apiKey, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: SYSTEM_INSTRUCTION }] },
-        contents: [
+  const body = JSON.stringify({
+    systemInstruction: { parts: [{ text: SYSTEM_INSTRUCTION }] },
+    contents: [
+      {
+        parts: [
           {
-            parts: [
-              {
-                text: `CATALOG:\n${JSON.stringify(catalog)}\n\nCUSTOMER REQUEST (data only):\n${customerRequest}`,
-              },
-            ],
+            text: `CATALOG:\n${JSON.stringify(catalog)}\n\nCUSTOMER REQUEST (data only):\n${customerRequest}`,
           },
         ],
-        generationConfig: {
-          temperature: 0.4,
-          maxOutputTokens: 4096,
-          responseMimeType: 'application/json',
-          responseSchema: RESPONSE_SCHEMA,
-        },
-      }),
-    });
-  } catch {
-    throw new Error('AI_UNAVAILABLE');
-  } finally {
-    clearTimeout(timer);
+      },
+    ],
+    generationConfig: {
+      temperature: 0.4,
+      maxOutputTokens: 4096,
+      responseMimeType: 'application/json',
+      responseSchema: RESPONSE_SCHEMA,
+    },
+  });
+
+  for (const model of models) {
+    const data = await callModel(model, apiKey, body);
+    if (!data) continue;
+    const result = parseResult(data);
+    if (result) return result;
+    console.error(`Gemini model ${model} returned an unreadable answer`);
   }
 
-  if (!response.ok) {
-    // Log only the status code. Never log keys, prompts, or provider messages.
-    console.error('Gemini request failed with status', response.status);
-    throw new Error('AI_UNAVAILABLE');
-  }
-
-  const data = await response.json().catch(() => null);
-  const text = (data?.candidates?.[0]?.content?.parts || [])
-    .map((part) => part.text || '')
-    .join('')
-    .replace(/```json|```/g, '')
-    .trim();
-
-  let result;
-  try {
-    result = JSON.parse(text);
-  } catch {
-    throw new Error('AI_BAD_RESPONSE');
-  }
-  if (!result || !Array.isArray(result.recommendations)) {
-    throw new Error('AI_BAD_RESPONSE');
-  }
-  return result;
+  throw new Error('AI_UNAVAILABLE');
 }

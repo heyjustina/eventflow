@@ -1,6 +1,6 @@
 import Service from '../models/Service.js';
+import { askGemini } from './geminiService.js';
 
-// Which categories to suggest for each event type, in priority order
 const EVENT_CATEGORIES = {
   Wedding: ['Venue', 'Catering', 'Photography', 'Decor', 'Entertainment', 'Rentals'],
   Corporate: ['Venue', 'Catering', 'AV & Production', 'Staffing', 'Photography'],
@@ -23,29 +23,52 @@ const CHECKLIST = [
   'Plan a thank-you message and feedback request afterward',
 ];
 
-export async function buildPlan({ eventType, guests, budget, preferences }) {
+const DISCLAIMER =
+  'Recommendations are informational and based on catalog data. Review each service before booking. Availability is confirmed only when you book.';
+
+// The server calculates money from real prices. A model never does.
+function buildBudget(budget, picks) {
+  const total = picks.reduce((sum, s) => sum + s.price, 0);
+  return {
+    yourBudget: budget,
+    estimatedTotal: total,
+    difference: budget - total,
+    withinBudget: total <= budget,
+  };
+}
+
+function toRecommendation(service, reason) {
+  return {
+    serviceId: service._id,
+    name: service.name,
+    category: service.category,
+    provider: service.provider,
+    price: service.price,
+    reason,
+  };
+}
+
+// Version 1: rules only. Used when the AI is unavailable.
+function buildRulesPlan({ eventType, guests, budget, preferences }, allServices) {
   const categories = EVENT_CATEGORIES[eventType];
-  const services = await Service.find({ isActive: true, category: { $in: categories } });
+  const words = preferences
+    .toLowerCase()
+    .split(/\W+/)
+    .filter((w) => w.length > 3);
 
-  const text = preferences.toLowerCase();
-
-  // Pick the best-fitting service per category: affordable, and matching preference words
   const picks = [];
   let remaining = budget;
   for (const category of categories) {
-    const options = services.filter((s) => s.category === category);
+    const options = allServices.filter((s) => s.category === category);
     if (options.length === 0) continue;
 
     const scored = options
       .map((s) => {
-        let score = 0;
         const haystack = `${s.name} ${s.description}`.toLowerCase();
-        text
-          .split(/\W+/)
-          .filter((w) => w.length > 3)
-          .forEach((w) => {
-            if (haystack.includes(w)) score += 2;
-          });
+        let score = 0;
+        words.forEach((w) => {
+          if (haystack.includes(w)) score += 2;
+        });
         if (s.price <= remaining) score += 3;
         return { service: s, score };
       })
@@ -56,28 +79,75 @@ export async function buildPlan({ eventType, guests, budget, preferences }) {
     remaining -= best.price;
   }
 
-  // Totals are calculated by the server from real prices, never by a model
-  const total = picks.reduce((sum, s) => sum + s.price, 0);
-
   return {
     source: 'rules',
+    notice: 'The AI assistant was unavailable, so this plan uses our built-in planning rules.',
     summary: `Based on your ${eventType.toLowerCase()} for ${guests} guests, these services from our catalog may fit.`,
-    recommendations: picks.map((s) => ({
-      serviceId: s._id,
-      name: s.name,
-      category: s.category,
-      provider: s.provider,
-      price: s.price,
-      reason: `Covers the ${s.category.toLowerCase()} need for your ${eventType.toLowerCase()}.`,
-    })),
-    budget: {
-      yourBudget: budget,
-      estimatedTotal: total,
-      difference: budget - total,
-      withinBudget: total <= budget,
-    },
+    recommendations: picks.map((s) =>
+      toRecommendation(s, `Covers the ${s.category.toLowerCase()} need for your ${eventType.toLowerCase()}.`)
+    ),
+    budget: buildBudget(budget, picks),
+    diyItems: [],
     checklist: CHECKLIST,
-    disclaimer:
-      'Recommendations are informational and based on catalog data. Review each service before booking. Availability is confirmed only when you book.',
+    disclaimer: DISCLAIMER,
   };
+}
+
+function cleanStrings(list, maxItems, maxLength) {
+  if (!Array.isArray(list)) return [];
+  return list
+    .filter((item) => typeof item === 'string' && item.trim())
+    .map((item) => item.trim().slice(0, maxLength))
+    .slice(0, maxItems);
+}
+
+// Version 2: ask Gemini, then verify everything against the database.
+export async function buildPlan(input) {
+  const allServices = await Service.find({ isActive: true }).lean();
+
+  try {
+    const aiResult = await askGemini({ ...input, services: allServices });
+
+    const byId = new Map(allServices.map((s) => [String(s._id), s]));
+    const seen = new Set();
+    const picks = [];
+    const recommendations = [];
+
+    for (const item of aiResult.recommendations) {
+      const id = typeof item?.serviceId === 'string' ? item.serviceId : '';
+      const service = byId.get(id); // unknown or invented IDs are dropped here
+      if (!service || seen.has(id)) continue;
+      seen.add(id);
+      picks.push(service);
+      const reason =
+        typeof item.reason === 'string' && item.reason.trim()
+          ? item.reason.trim().slice(0, 200)
+          : `A ${service.category.toLowerCase()} option from our catalog.`;
+      recommendations.push(toRecommendation(service, reason));
+      if (recommendations.length === 8) break;
+    }
+
+    if (recommendations.length === 0) {
+      throw new Error('AI_NO_VALID_SERVICES');
+    }
+
+    const checklist = cleanStrings(aiResult.checklist, 10, 200);
+
+    return {
+      source: 'ai',
+      notice: '',
+      summary:
+        typeof aiResult.summary === 'string' && aiResult.summary.trim()
+          ? aiResult.summary.trim().slice(0, 300)
+          : `Here are services from our catalog that may fit your ${input.eventType.toLowerCase()}.`,
+      recommendations,
+      budget: buildBudget(input.budget, picks),
+      diyItems: cleanStrings(aiResult.diyItems, 8, 200),
+      checklist: checklist.length > 0 ? checklist : CHECKLIST,
+      disclaimer: `AI-assisted suggestions based only on our catalog. ${DISCLAIMER}`,
+    };
+  } catch (error) {
+    console.error('Planner fell back to rules:', error.message);
+    return buildRulesPlan(input, allServices);
+  }
 }

@@ -81,6 +81,7 @@ function Planner() {
               </FormField>
             </div>
           </div>
+          <p className="service-provider">Please don't enter personal details. Your text is sent to an AI service to build the plan.</p>
           <Button type="submit" disabled={loading}>{loading ? 'Planning...' : 'Get my plan'}</Button>
         </form>
       </Card>
@@ -88,6 +89,12 @@ function Planner() {
       {plan && (
         <div style={{ marginTop: '24px' }}>
           <Card title="Your suggested plan">
+            <p>
+              {plan.source === 'ai'
+                ? <Badge tone="info">AI-assisted</Badge>
+                : <Badge tone="neutral">Rules-based</Badge>}
+            </p>
+            {plan.notice && <p className="service-provider">{plan.notice}</p>}
             <p>{plan.summary}</p>
             <div className="event-grid">
               {plan.recommendations.map((r) => (
@@ -115,7 +122,19 @@ function Planner() {
                 ? <Badge tone="success">{formatCurrency(plan.budget.difference)} under budget</Badge>
                 : <Badge tone="danger">{formatCurrency(Math.abs(plan.budget.difference))} over budget</Badge>}
             </p>
+            <p className="service-provider">Totals are calculated from real catalog prices.</p>
           </Card>
+
+          {plan.diyItems && plan.diyItems.length > 0 && (
+            <>
+              <br />
+              <Card title="Do it yourself or use someone you know">
+                <ul>
+                  {plan.diyItems.map((item) => <li key={item}>{item}</li>)}
+                </ul>
+              </Card>
+            </>
+          )}
 
           <br />
           <Card title="Planning checklist (general guidance)">
