@@ -5,6 +5,7 @@ import Card from '../components/ui/Card';
 import Badge from '../components/ui/Badge';
 import EmptyState from '../components/ui/EmptyState';
 import { formatCurrency } from '../utils/format';
+import { getPriceTier } from '../utils/priceTier';
 import '../styles/dashboard.css';
 import '../styles/services.css';
 
@@ -16,12 +17,13 @@ const CATEGORIES = [
 function Services() {
   const [services, setServices] = useState([]);
   const [category, setCategory] = useState('');
+  const [tier, setTier] = useState('');
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const controller = new AbortController(); // cancels stale requests
+    const controller = new AbortController();
     const timer = setTimeout(async () => {
       setLoading(true);
       setError('');
@@ -36,13 +38,16 @@ function Services() {
       } finally {
         if (!controller.signal.aborted) setLoading(false);
       }
-    }, 300); // wait 300ms after typing stops
+    }, 300);
 
     return () => {
       clearTimeout(timer);
       controller.abort();
     };
   }, [category, search]);
+
+  // The affordability filter runs in the browser on the list we already have
+  const visible = services.filter((s) => !tier || getPriceTier(s.price).symbol === tier);
 
   return (
     <div>
@@ -67,35 +72,41 @@ function Services() {
             <option key={c} value={c}>{c}</option>
           ))}
         </select>
+        <select className="input" value={tier} onChange={(e) => setTier(e.target.value)}>
+          <option value="">Any price</option>
+          <option value="$">$ Budget-friendly</option>
+          <option value="$$">$$ Moderate</option>
+          <option value="$$$">$$$ Premium</option>
+        </select>
       </div>
 
       {loading && <p>Loading services...</p>}
-
-      {error && !loading && (
-        <EmptyState title="Couldn't load services" message={error} />
+      {error && !loading && <EmptyState title="Couldn't load services" message={error} />}
+      {!loading && !error && visible.length === 0 && (
+        <EmptyState title="No services found" message="Try a different search, category, or price." />
       )}
-
-      {!loading && !error && services.length === 0 && (
-        <EmptyState title="No services found" message="Try a different search or category." />
-      )}
-
-      {!loading && !error && services.length > 0 && (
+      {!loading && !error && visible.length > 0 && (
         <div className="event-grid">
-          {services.map((service) => (
-            <Card key={service._id} className="event-card">
-              <div className="event-card-top">
-                <Badge tone="info">{service.category}</Badge>
-                <strong>{formatCurrency(service.price)}</strong>
-              </div>
-              <h3 className="event-card-name">
-                <Link to={`/services/${service._id}`} className="event-card-link">
-                  {service.name}
-                </Link>
-              </h3>
-              <p className="service-provider">{service.provider}</p>
-              <p className="service-duration">⏱ {service.durationMinutes} min</p>
-            </Card>
-          ))}
+          {visible.map((service) => {
+            const priceTier = getPriceTier(service.price);
+            return (
+              <Card key={service._id} className="event-card">
+                <div className="event-card-top">
+                  <Badge tone="info">{service.category}</Badge>
+                  <Badge tone={priceTier.tone}>{priceTier.symbol} {priceTier.label}</Badge>
+                </div>
+                <h3 className="event-card-name">
+                  <Link to={`/services/${service._id}`} className="event-card-link">
+                    {service.name}
+                  </Link>
+                </h3>
+                <p className="service-provider">{service.provider}</p>
+                <p className="service-duration">
+                  <strong>{formatCurrency(service.price)}</strong> · ⏱ {service.durationMinutes} min
+                </p>
+              </Card>
+            );
+          })}
         </div>
       )}
     </div>
