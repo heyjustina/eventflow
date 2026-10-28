@@ -9,14 +9,25 @@ import aiRoutes from './routes/aiRoutes.js';
 
 const app = express();
 
+app.set('trust proxy', 1);
+
+const allowedOrigins = (process.env.CLIENT_ORIGIN || '')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
 app.use(helmet());
 app.use(
   cors({
-    origin: process.env.CLIENT_ORIGIN,
+    origin: allowedOrigins,
     methods: ['GET', 'POST', 'PATCH', 'DELETE'],
   })
 );
-app.use(express.json());
+app.use(express.json({ limit: '50kb' }));
+
+app.get('/', (req, res) => {
+  res.json({ name: 'EventFlow API', health: '/api/health' });
+});
 
 app.get('/api/health', (req, res) => {
   res.json({
@@ -35,6 +46,9 @@ app.use((req, res) => {
 });
 
 app.use((err, req, res, next) => {
+  if (err.type === 'entity.parse.failed') {
+    return res.status(400).json({ error: 'Invalid JSON in request body' });
+  }
   console.error(err.message);
   res.status(err.status || 500).json({ error: err.status ? err.message : 'Server error' });
 });
