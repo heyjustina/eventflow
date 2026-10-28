@@ -214,6 +214,10 @@ Add screenshots to `docs/screenshots/` and link them here:
 | AI Planner | `docs/screenshots/planner.png` |
 | Mobile | `docs/screenshots/mobile.png` |
 
+## How AI was used during development
+
+I used an AI assistant (Claude) as a mentor and code generator for planning, database design, code, debugging, and documentation. I ran and tested every step myself. The AI made mistakes, including a server startup crash, a deployment configuration error, a model that was unavailable, and an API key placed in an example file, and I diagnosed and fixed each one. The AI feature is built so the server validates every recommended service against MongoDB and calculates prices itself, so the model's output is never trusted blindly. The SDLC document has a table of specific examples.
+
 ## Credits
 
 Illustrated banners are original SVG drawings made for this project. Service data is fictional.
