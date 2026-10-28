@@ -4,6 +4,7 @@ import { apiFetch } from '../api/client';
 import Card from '../components/ui/Card';
 import Badge from '../components/ui/Badge';
 import EmptyState from '../components/ui/EmptyState';
+import CategoryBanner from '../components/services/CategoryBanner';
 import { formatCurrency } from '../utils/format';
 import { getPriceTier } from '../utils/priceTier';
 import '../styles/dashboard.css';
@@ -46,7 +47,6 @@ function Services() {
     };
   }, [category, search]);
 
-  // The affordability filter runs in the browser on the list we already have
   const visible = services.filter((s) => !tier || getPriceTier(s.price).symbol === tier);
 
   return (
@@ -91,6 +91,7 @@ function Services() {
             const priceTier = getPriceTier(service.price);
             return (
               <Card key={service._id} className="event-card">
+                <CategoryBanner category={service.category} />
                 <div className="event-card-top">
                   <Badge tone="info">{service.category}</Badge>
                   <Badge tone={priceTier.tone}>{priceTier.symbol} {priceTier.label}</Badge>
